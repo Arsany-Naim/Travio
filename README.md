@@ -1,101 +1,42 @@
 # Travio (TravelHub)
 
-Travio is a Flutter travel booking and planning app powered by Supabase. Users can browse trips, book and save favorites, explore destinations on a map, and join community groups. The app also includes an admin dashboard and optional AI-assisted features for itineraries, meeting points, and location data.
+Travio is a Flutter travel booking and planning app with a polished multi-screen experience for discovering trips, managing bookings, and exploring destinations. The backend is optional, but if you connect one you unlock auth, bookings, favorites, and admin data.
 
-## Features
-- Browse trips, search by destination and budget, and view trip details
+## What you can do
+- Discover featured trips and explore all destinations
+- Search by destination and budget
 - Book trips with guests, travel date, seat category, meeting point, and special requests
-- Save favorites and manage bookings
-- Community groups (public and private) with group creation and members
-- Admin dashboard for managing users and trips
-- Map view with trip markers and an itinerary map view
-- AI-assisted coordinates, itineraries, and meeting points (Gemini) with Supabase caching
-- Fallback offline trip data when Supabase is unavailable
+- Save favorites and review bookings
+- View trips on an interactive map with markers
+- Generate itineraries and meeting points (optional AI)
+- Join or create travel groups in the community section
+- Use an admin dashboard to manage users and trips (dev)
+
+## Screens
+- Home and Explore
+- Trip Details and Booking Summary
+- My Trips (Bookings and Favorites)
+- Map Overview and Itinerary Map View
+- Meeting Point Selector
+- Community Groups
+- Profile
+- Admin Dashboard (dev)
 
 ## Tech stack
 - Flutter and Dart
-- Supabase (Auth + Postgres)
 - Provider state management
 - flutter_map + OpenStreetMap tiles
 - HTTP client and dotenv
+- Optional backend: Supabase (Auth + Postgres)
 
 ## Getting started
 
 ### Prerequisites
 - Flutter SDK (Dart 3.9+)
-- A Supabase project
 
 ### Install dependencies
 ```
 flutter pub get
-```
-
-### Configure Supabase
-1. Create a Supabase project.
-2. In the Supabase SQL editor, run:
-	 - `supabase_admin_setup.sql` (trips + profiles + seed data)
-	 - `supabase_setup.sql` (favorites + bookings)
-3. Ensure the bookings table has a `meeting_point` column (used during booking):
-```
-ALTER TABLE bookings ADD COLUMN IF NOT EXISTS meeting_point TEXT;
-```
-
-### App credentials
-Supabase credentials are currently hardcoded in `lib/main.dart`. Replace them with your own:
-- `Supabase.initialize(url: ..., anonKey: ...)`
-
-The app also loads `.env` at startup, so you can refactor to read these values from environment variables if you prefer.
-
-### Optional AI features (Gemini)
-AI features are implemented in `lib/services/ai_location_service.dart` and are used for:
-- Trip coordinates (map markers)
-- Trip itineraries (day-by-day map view)
-- Meeting points
-- Location suggestions
-
-Set your Gemini API key in `_geminiApiKey` or refactor to read it from `.env`.
-
-If you want persistence for AI data, create these tables:
-```
--- Trip coordinates cache
-CREATE TABLE IF NOT EXISTS trip_coordinates (
-	trip_id UUID REFERENCES trips(id) ON DELETE CASCADE PRIMARY KEY,
-	location TEXT,
-	latitude DOUBLE PRECISION,
-	longitude DOUBLE PRECISION
-);
-
--- Itinerary cache
-CREATE TABLE IF NOT EXISTS trip_itineraries (
-	id BIGSERIAL PRIMARY KEY,
-	trip_id TEXT NOT NULL,
-	day INTEGER NOT NULL,
-	title TEXT,
-	description TEXT,
-	latitude DOUBLE PRECISION,
-	longitude DOUBLE PRECISION,
-	activities TEXT,
-	time TEXT
-);
-
--- Meeting points cache
-CREATE TABLE IF NOT EXISTS meeting_points (
-	id BIGSERIAL PRIMARY KEY,
-	trip_id UUID REFERENCES trips(id) ON DELETE CASCADE,
-	name TEXT,
-	description TEXT,
-	latitude DOUBLE PRECISION,
-	longitude DOUBLE PRECISION,
-	icon_type TEXT
-);
-
--- Location suggestions cache
-CREATE TABLE IF NOT EXISTS location_suggestions (
-	id BIGSERIAL PRIMARY KEY,
-	query TEXT UNIQUE,
-	suggestions TEXT,
-	expires_at TIMESTAMP DEFAULT (NOW() + INTERVAL '7 days')
-);
 ```
 
 ### Run the app
@@ -108,6 +49,37 @@ For web:
 flutter run -d chrome
 ```
 
+## Configuration
+The app loads `.env` at startup. You can store API keys and endpoints there and wire them in code.
+
+Current code uses hardcoded values in `lib/main.dart` for backend initialization. Update those values or refactor to read from `.env`.
+
+## Backend setup (optional)
+If you want authentication, bookings, favorites, and admin data, connect a backend.
+
+Quick setup with Supabase:
+1. Create a Supabase project.
+2. Run the SQL helpers:
+  - `supabase_admin_setup.sql` (trips, profiles, seed data)
+  - `supabase_setup.sql` (favorites, bookings)
+3. Add the meeting point column (only if you use meeting point selection):
+```
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS meeting_point TEXT;
+```
+4. Update your backend URL and anon key in `lib/main.dart` or load them from `.env`.
+
+If no backend is configured, the app falls back to local trip data.
+
+## AI features (optional)
+AI features are implemented in `lib/services/ai_location_service.dart`:
+- Trip coordinates for maps
+- Day-by-day itineraries
+- Meeting points
+- Location suggestions
+
+Set your Gemini API key in the service or load it from `.env`.
+If you want AI persistence, create tables for: `trip_coordinates`, `trip_itineraries`, `meeting_points`, and `location_suggestions`.
+
 ## Admin login (dev)
 The app includes a simple admin shortcut in the auth modal:
 - Email: admin@travilo.app
@@ -118,15 +90,11 @@ Change this in `lib/auth/auth_modal.dart` before production.
 ## Project structure
 ```
 lib/
-	auth/            Auth modal and flow
-	config/          Colors, enums, fallback trip data
-	models/          Data models
-	providers/       State management
-	screens/         App screens (home, trips, map, admin, community)
-	services/        Supabase and AI services
-	widgets/         Reusable UI components
+  auth/            Auth modal and flow
+  config/          Colors, enums, fallback trip data
+  models/          Data models
+  providers/       State management
+  screens/         App screens (home, trips, map, admin, community)
+  services/        API and AI services
+  widgets/         Reusable UI components
 ```
-
-## Notes
-- Trip data falls back to local data if Supabase is unavailable.
-- Map and itinerary features can work with cached or fallback coordinates.
