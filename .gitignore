@@ -45,4 +45,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Local one-off SQL fix scripts
+fix_*.sql
+
 Hamza notes to study before discussion.txt
