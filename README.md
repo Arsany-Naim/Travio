@@ -1,4 +1,4 @@
-# Travio (TravelHub)
+# Travio
 
 Travio is a Flutter travel booking and planning app with a polished multi-screen experience for discovering trips, managing bookings, and exploring destinations. The backend is optional, but if you connect one you unlock auth, bookings, favorites, and admin data.
 
